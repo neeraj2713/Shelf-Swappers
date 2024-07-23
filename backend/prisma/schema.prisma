@@ -1,0 +1,76 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Users {
+  id                 Int          @id @default(autoincrement())
+  username           String
+  email              String       @unique
+  password           String
+  location           String?
+  books              Books[]      @relation("BooksOwned")
+  bookshelves        Bookshelves[]
+  wishlists          Wishlists[]
+  reviews            Reviews[]
+  exchangesRequested Exchanges[]  @relation("RequesterExchanges")
+  exchangesOffered   Exchanges[]  @relation("OffererExchanges")
+}
+
+model Books {
+  id                 Int          @id @default(autoincrement())
+  title              String
+  author             String
+  genre              String
+  condition          String
+  owner_id           Int
+  owner              Users        @relation("BooksOwned", fields: [owner_id], references: [id])
+  bookshelves        Bookshelves[]
+  wishlists          Wishlists[]
+  reviews            Reviews[]
+  exchangesRequested Exchanges[]  @relation("RequestedBooks")
+  exchangesOffered   Exchanges[]  @relation("OfferedBooks")
+}
+
+model Bookshelves {
+  id      Int    @id @default(autoincrement())
+  user_id Int
+  book_id Int
+  user    Users  @relation(fields: [user_id], references: [id])
+  book    Books  @relation(fields: [book_id], references: [id])
+}
+
+model Wishlists {
+  id      Int    @id @default(autoincrement())
+  user_id Int
+  book_id Int
+  user    Users  @relation(fields: [user_id], references: [id])
+  book    Books  @relation(fields: [book_id], references: [id])
+}
+
+model Exchanges {
+  id               Int    @id @default(autoincrement())
+  requester_id     Int
+  offerer_id       Int
+  requested_book_id Int
+  offered_book_id   Int
+  status           String
+  requester        Users  @relation("RequesterExchanges", fields: [requester_id], references: [id])
+  offerer          Users  @relation("OffererExchanges", fields: [offerer_id], references: [id])
+  requestedBook    Books  @relation("RequestedBooks", fields: [requested_book_id], references: [id])
+  offeredBook      Books  @relation("OfferedBooks", fields: [offered_book_id], references: [id])
+}
+
+model Reviews {
+  id          Int    @id @default(autoincrement())
+  user_id     Int
+  book_id     Int
+  rating      Int
+  review_text String?
+  user        Users  @relation(fields: [user_id], references: [id])
+  book        Books  @relation(fields: [book_id], references: [id])
+}
